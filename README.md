@@ -17,11 +17,11 @@ yarn add next-request-ip
 ### App Router (Next.js 13+)
 
 ```typescript
-import { getClientIp } from 'next-request-ip';
-import { headers } from 'next/headers';
+import { getClientIp } from "next-request-ip";
+import { headers } from "next/headers";
 
-export default function Page() {
-  const headersList = headers();
+export default async function Page() {
+  const headersList = await headers();
   const clientIp = getClientIp(headersList);
 
   return (
