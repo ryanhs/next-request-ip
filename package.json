@@ -8,6 +8,10 @@
   },
   "license": "MIT",
   "description": "A Next.js-friendly fork of request-ip, optimized for Headers to retrieve client IP addresses.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanhs/next-request-ip.git"
+  },
   "author": "Ryan Hamonangan - mr.ryansilalahi@gmail.com",
   "keywords": [
     "next",
