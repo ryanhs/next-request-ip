@@ -101,15 +101,3 @@ Original copyright notice:
 ```
 Copyright (c) 2014 Petar Bojinov
 ```
-
-## Coverage
-
-Run the test coverage report locally:
-
-```bash
-yarn test:coverage
-```
-
-Coverage output will be written to the `coverage` directory (open `coverage/lcov-report/index.html` in a browser).
-
-If you'd like CI coverage uploads (Codecov / Coveralls), I can add a step to the workflow next.

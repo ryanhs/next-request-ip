@@ -2,7 +2,7 @@
   "name": "next-request-ip",
   "type": "module",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "engines": {
     "node": ">=20"
   },
