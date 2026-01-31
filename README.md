@@ -35,11 +35,12 @@ export default function Page() {
 ### API Routes
 
 ```typescript
-import { getClientIp } from 'next-request-ip';
+import { NextResponse, type NextRequest } from "next/server";
+import { getClientIp } from "next-request-ip";
 
-export async function GET(request: Request) {
-  const clientIp = getClientIp(request.headers);
-  return Response.json({ ip: clientIp });
+export async function GET(request: NextRequest) {
+  const ip = getClientIp(request.headers);
+  return NextResponse.json({ ip });
 }
 ```
 
