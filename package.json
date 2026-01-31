@@ -1,0 +1,50 @@
+{
+  "name": "next-request-ip",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "description": "A Next.js-friendly fork of request-ip, optimized for Headers to retrieve client IP addresses.",
+  "author": "Ryan Hamonangan - mr.ryansilalahi@gmail.com",
+  "keywords": [
+    "next",
+    "nextjs",
+    "request-ip",
+    "ip",
+    "headers",
+    "middleware",
+    "edge",
+    "serverless"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown && yarn test:e2e",
+    "dev": "tsdown --watch",
+    "test": "jest test/unit",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "jest test/e2e"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "tsdown": "^0.18.1",
+    "typescript": "^5.9.3"
+  }
+}
