@@ -19,7 +19,9 @@ function getClientIpFromXForwardedFor(value: string | null): string | null {
   // and the left-most IP address is the IP address of the originating client.
   // source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
   // Azure Web App's also adds a port for some reason, so we'll only use the first part (the IP)
-  const forwardedIps = value.split(",").map((e) => normalizeIpCandidate(e.trim()));
+  const forwardedIps = value
+    .split(",")
+    .map((e) => normalizeIpCandidate(e.trim()));
 
   // Sometimes IP addresses in this header can be 'unknown' (http://stackoverflow.com/a/11285650).
   // Therefore taking the right-most IP address that is not unknown
@@ -41,7 +43,10 @@ function normalizeIpCandidate(input: string): string {
   let v = input.trim();
 
   // remove surrounding quotes
-  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
     v = v.slice(1, -1).trim();
   }
 
@@ -59,7 +64,7 @@ function normalizeIpCandidate(input: string): string {
 
   // ipv6 without brackets but with trailing :port — only strip if port looks like a real port (2-5 digits)
   const ipv6Port = v.match(/^([0-9a-fA-F:]+):(\d{2,5})$/);
-  if (ipv6Port && ipv6Port[1].includes(':')) {
+  if (ipv6Port && ipv6Port[1].includes(":")) {
     return ipv6Port[1];
   }
 
@@ -71,17 +76,18 @@ function normalizeIpCandidate(input: string): string {
  */
 function getClientIpFromForwarded(value: string | null): string | null {
   if (value === null) return null;
-  if (is.not.string(value)) throw new TypeError(`Expected a string, got "${typeof value}"`);
+  if (is.not.string(value))
+    throw new TypeError(`Expected a string, got "${typeof value}"`);
 
   // Forwarded may contain multiple comma-separated entries; each entry may have ; separated params
-  const entries = value.split(',').map((e) => e.trim());
+  const entries = value.split(",").map((e) => e.trim());
   for (const entry of entries) {
-    const params = entry.split(';').map((p) => p.trim());
+    const params = entry.split(";").map((p) => p.trim());
     for (const p of params) {
-      const [k, raw] = p.split('=', 2).map((s) => s && s.trim());
+      const [k, raw] = p.split("=", 2).map((s) => s && s.trim());
       if (!k || !raw) continue;
-      if (k.toLowerCase() === 'for') {
-        const candidate = normalizeIpCandidate(raw.replace(/^\s*for=/i, ''));
+      if (k.toLowerCase() === "for") {
+        const candidate = normalizeIpCandidate(raw.replace(/^\s*for=/i, ""));
         // raw may include surrounding quotes — normalizeIpCandidate handles that
         if (is.ip(candidate)) return candidate;
       }
@@ -102,12 +108,6 @@ export function getClientIp(headers: Headers): string | null {
   const xClientIp = headers.get("x-client-ip");
   if (xClientIp && is.ip(xClientIp)) {
     return xClientIp;
-  }
-
-  // Load-balancers (AWS ELB) or proxies.
-  const xForwardedFor = getClientIpFromXForwardedFor(headers.get("x-forwarded-for"));
-  if (xForwardedFor && is.ip(xForwardedFor)) {
-    return xForwardedFor;
   }
 
   // Cloudflare.
@@ -153,26 +153,34 @@ export function getClientIp(headers: Headers): string | null {
   }
 
   // Envoy headers
-  const xEnvoyExternal = headers.get('x-envoy-external-address');
+  const xEnvoyExternal = headers.get("x-envoy-external-address");
   if (xEnvoyExternal && is.ip(xEnvoyExternal)) {
     return xEnvoyExternal;
   }
 
-  const xEnvoyClient = headers.get('x-envoy-client-address');
+  const xEnvoyClient = headers.get("x-envoy-client-address");
   if (xEnvoyClient && is.ip(xEnvoyClient)) {
     return xEnvoyClient;
   }
 
+  // Load-balancers (AWS ELB) or proxies.
+  const xForwardedFor = getClientIpFromXForwardedFor(
+    headers.get("x-forwarded-for"),
+  );
+  if (xForwardedFor && is.ip(xForwardedFor)) {
+    return xForwardedFor;
+  }
+
   // Some proxies preserve original client IP in this header
-  const xOriginalForwardedFor = headers.get('x-original-forwarded-for');
+  const xOriginalForwardedFor = headers.get("x-original-forwarded-for");
   if (xOriginalForwardedFor) {
     const ip = getClientIpFromXForwardedFor(xOriginalForwardedFor);
     if (ip && is.ip(ip)) return ip;
   }
 
   // Envoy provides upstream service time; not an IP but useful to document
-  const xEnvoyUpstreamTime = headers.get('x-envoy-upstream-service-time');
-  if (xEnvoyUpstreamTime && xEnvoyUpstreamTime.trim() !== '') {
+  const xEnvoyUpstreamTime = headers.get("x-envoy-upstream-service-time");
+  if (xEnvoyUpstreamTime && xEnvoyUpstreamTime.trim() !== "") {
     // not returning it — only checked to exist; keep for future use or logging
   }
 
@@ -228,7 +236,9 @@ const regexes = {
  * @param func
  * @returns
  */
-function not(func: (...args: unknown[]) => boolean): (...args: unknown[]) => boolean {
+function not(
+  func: (...args: unknown[]) => boolean,
+): (...args: unknown[]) => boolean {
   return function (...args: unknown[]) {
     return !func(...args);
   };
@@ -249,7 +259,11 @@ function existy(value: unknown): boolean {
  * @returns {boolean} True if the value is an IP address, otherwise false
  */
 function ip(value: unknown): boolean {
-  return existy(value) && typeof value === "string" && (regexes.ipv4.test(value) || regexes.ipv6.test(value));
+  return (
+    existy(value) &&
+    typeof value === "string" &&
+    (regexes.ipv4.test(value) || regexes.ipv6.test(value))
+  );
 }
 
 /**
