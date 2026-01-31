@@ -83,6 +83,11 @@ Supports both IPv4 and IPv6 addresses.
 - No dependencies on Node.js-specific request objects
 - Optimized for modern web standards
 
+## Compatibility
+
+- Minimum Node.js version: >= 20 (see `package.json` `engines`)
+
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
