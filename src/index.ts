@@ -57,8 +57,8 @@ function normalizeIpCandidate(input: string): string {
     return ipv4Port[1];
   }
 
-  // ipv6 without brackets but with trailing :port — try to strip if final segment is numeric
-  const ipv6Port = v.match(/^([0-9a-fA-F:]+):(\d+)$/);
+  // ipv6 without brackets but with trailing :port — only strip if port looks like a real port (2-5 digits)
+  const ipv6Port = v.match(/^([0-9a-fA-F:]+):(\d{2,5})$/);
   if (ipv6Port && ipv6Port[1].includes(':')) {
     return ipv6Port[1];
   }
