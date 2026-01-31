@@ -25,7 +25,6 @@ jobs:
       - name: Run coverage (unit + e2e)
         run: yarn test:coverage
       - name: Publish coverage to Coveralls
-        if: ${{ secrets.COVERALLS_REPO_TOKEN != '' }}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: npx coveralls < coverage/lcov.info
