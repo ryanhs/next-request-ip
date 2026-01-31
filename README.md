@@ -62,23 +62,39 @@ console.log(getClientIp(headers)); // '192.0.2.1'
 Returns the client IP address from the request headers, or `null` if not found.
 
 Checks the following headers in order of priority:
-- `x-client-ip`
+Checks the following headers in order of priority (proxy/load-balancer headers first):
 - `x-forwarded-for`
+- `x-original-forwarded-for`
+- `forwarded`
+- `forwarded-for`
+- `x-real-ip`
+- `x-client-ip`
+- `x-envoy-external-address` (Envoy)
+- `x-envoy-client-address` (Envoy)
+- `x-forwarded`
+- `x-cluster-client-ip`
 - `cf-connecting-ip`
 - `do-connecting-ip`
 - `fastly-client-ip`
 - `true-client-ip`
-- `x-real-ip`
-- `x-cluster-client-ip`
-- `x-envoy-external-address` (Envoy)
-- `x-envoy-client-address` (Envoy)
-- `x-original-forwarded-for`
-- `x-envoy-upstream-service-time` (informational)
-- `x-forwarded`
-- `forwarded-for`
-- `forwarded`
 - `x-appengine-user-ip`
 - `Cf-Pseudo-IPv4`
+ - `x-forwarded-for`
+ - `x-original-forwarded-for`
+ - `forwarded`
+ - `forwarded-for`
+ - `x-real-ip`
+ - `x-client-ip`
+ - `x-envoy-external-address` (Envoy)
+ - `x-envoy-client-address` (Envoy)
+ - `x-forwarded`
+ - `x-cluster-client-ip`
+ - `cf-connecting-ip`
+ - `do-connecting-ip`
+ - `x-appengine-user-ip`
+ - `fastly-client-ip`
+ - `true-client-ip`
+ - `Cf-Pseudo-IPv4`
 
 Supports both IPv4 and IPv6 addresses.
 

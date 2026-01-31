@@ -126,6 +126,8 @@ export function getClientIp(headers: Headers): string | null {
     return doConnectingIp;
   }
 
+  
+
   // Fastly and Firebase hosting header (When forwarded to cloud function)
   const fastlyClientIp = headers.get("fastly-client-ip");
   if (fastlyClientIp && is.ip(fastlyClientIp)) {
