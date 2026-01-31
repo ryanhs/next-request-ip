@@ -70,6 +70,10 @@ Checks the following headers in order of priority:
 - `true-client-ip`
 - `x-real-ip`
 - `x-cluster-client-ip`
+- `x-envoy-external-address` (Envoy)
+- `x-envoy-client-address` (Envoy)
+- `x-original-forwarded-for`
+- `x-envoy-upstream-service-time` (informational)
 - `x-forwarded`
 - `forwarded-for`
 - `forwarded`

@@ -19,17 +19,7 @@ function getClientIpFromXForwardedFor(value: string | null): string | null {
   // and the left-most IP address is the IP address of the originating client.
   // source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For
   // Azure Web App's also adds a port for some reason, so we'll only use the first part (the IP)
-  const forwardedIps = value.split(",").map((e) => {
-    const ip = e.trim();
-    if (ip.includes(":")) {
-      const splitted = ip.split(":");
-      // make sure we only use this if it's ipv4 (ip:port)
-      if (splitted.length === 2) {
-        return splitted[0];
-      }
-    }
-    return ip;
-  });
+  const forwardedIps = value.split(",").map((e) => normalizeIpCandidate(e.trim()));
 
   // Sometimes IP addresses in this header can be 'unknown' (http://stackoverflow.com/a/11285650).
   // Therefore taking the right-most IP address that is not unknown
@@ -41,6 +31,63 @@ function getClientIpFromXForwardedFor(value: string | null): string | null {
   }
 
   // If no value in the split list is an ip, return null
+  return null;
+}
+
+/**
+ * Normalize candidate IP strings: strip surrounding quotes/brackets and trailing ports.
+ */
+function normalizeIpCandidate(input: string): string {
+  let v = input.trim();
+
+  // remove surrounding quotes
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1).trim();
+  }
+
+  // [ipv6]:port
+  const bracketMatch = v.match(/^\[([^\]]+)\](?::(\d+))?$/);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+
+  // ipv4:port
+  const ipv4Port = v.match(/^(\d{1,3}(?:\.\d{1,3}){3}):\d+$/);
+  if (ipv4Port) {
+    return ipv4Port[1];
+  }
+
+  // ipv6 without brackets but with trailing :port — try to strip if final segment is numeric
+  const ipv6Port = v.match(/^([0-9a-fA-F:]+):(\d+)$/);
+  if (ipv6Port && ipv6Port[1].includes(':')) {
+    return ipv6Port[1];
+  }
+
+  return v;
+}
+
+/**
+ * Parse RFC 7239 Forwarded header and extract first `for` token that is a valid IP.
+ */
+function getClientIpFromForwarded(value: string | null): string | null {
+  if (value === null) return null;
+  if (is.not.string(value)) throw new TypeError(`Expected a string, got "${typeof value}"`);
+
+  // Forwarded may contain multiple comma-separated entries; each entry may have ; separated params
+  const entries = value.split(',').map((e) => e.trim());
+  for (const entry of entries) {
+    const params = entry.split(';').map((p) => p.trim());
+    for (const p of params) {
+      const [k, raw] = p.split('=', 2).map((s) => s && s.trim());
+      if (!k || !raw) continue;
+      if (k.toLowerCase() === 'for') {
+        const candidate = normalizeIpCandidate(raw.replace(/^\s*for=/i, ''));
+        // raw may include surrounding quotes — normalizeIpCandidate handles that
+        if (is.ip(candidate)) return candidate;
+      }
+    }
+  }
+
   return null;
 }
 
@@ -105,6 +152,30 @@ export function getClientIp(headers: Headers): string | null {
     return xClusterClientIp;
   }
 
+  // Envoy headers
+  const xEnvoyExternal = headers.get('x-envoy-external-address');
+  if (xEnvoyExternal && is.ip(xEnvoyExternal)) {
+    return xEnvoyExternal;
+  }
+
+  const xEnvoyClient = headers.get('x-envoy-client-address');
+  if (xEnvoyClient && is.ip(xEnvoyClient)) {
+    return xEnvoyClient;
+  }
+
+  // Some proxies preserve original client IP in this header
+  const xOriginalForwardedFor = headers.get('x-original-forwarded-for');
+  if (xOriginalForwardedFor) {
+    const ip = getClientIpFromXForwardedFor(xOriginalForwardedFor);
+    if (ip && is.ip(ip)) return ip;
+  }
+
+  // Envoy provides upstream service time; not an IP but useful to document
+  const xEnvoyUpstreamTime = headers.get('x-envoy-upstream-service-time');
+  if (xEnvoyUpstreamTime && xEnvoyUpstreamTime.trim() !== '') {
+    // not returning it — only checked to exist; keep for future use or logging
+  }
+
   const xForwarded = headers.get("x-forwarded");
   if (xForwarded && is.ip(xForwarded)) {
     return xForwarded;
@@ -116,8 +187,14 @@ export function getClientIp(headers: Headers): string | null {
   }
 
   const forwarded = headers.get("forwarded");
-  if (forwarded && is.ip(forwarded)) {
-    return forwarded;
+  const forwardedHeader = headers.get("forwarded");
+  if (forwardedHeader && is.ip(forwardedHeader)) {
+    return forwardedHeader;
+  }
+
+  const forwardedParsed = getClientIpFromForwarded(forwardedHeader);
+  if (forwardedParsed && is.ip(forwardedParsed)) {
+    return forwardedParsed;
   }
 
   // Google Cloud App Engine
